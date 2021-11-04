@@ -27,5 +27,3 @@ async def start_bot():
   await bot.start(token)
 
 bot.run(token)
-
-#test
