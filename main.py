@@ -1,8 +1,7 @@
 import discord
 from discord.ext import commands
-import music
-import basic
-import help
+import musique
+import commandes
 import random_cmd
 import kick
 import datetime
@@ -11,7 +10,7 @@ import event
 
 token = "ODg4NDUwNTIyNDg1NTEwMTY0.YUS4Bw.KeUrMZ4GEUTRJFFP5WVTR_jg7hE"
 
-cogs = [music,help,random_cmd,basic,kick,message,event]
+cogs = [musique,random_cmd,commandes,kick,message,event]
 
 #activity = discord.Game(name="!help")
 #activity = discord.Streaming(name="!help", url="twitch_url_here")

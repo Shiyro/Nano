@@ -11,7 +11,7 @@ class event(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self,message):
-      await self.client.process_commands(message)
+      #await self.client.process_commands(message)
       if not message.author is self.client.user: #Check si l'auteur du message est pas le bot
         if not message.guild: # si le bot recois en pm
           await self.client.get_channel(905566642858242049).send(message.content)

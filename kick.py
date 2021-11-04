@@ -1,4 +1,4 @@
-import discord 
+import discord
 from discord.ext import commands
 import random
 import json
@@ -10,12 +10,12 @@ class kick(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name='kick',help='Kick someone secretly')
+    @commands.command(name='kick',help="Kick quelqu'un secrétement !")
     async def kick(self,ctx,member:discord.Member):
       await ctx.message.delete()
       await member.move_to(None)
 
-    @commands.command(name='rkick',help='Kick someone randomly !')
+    @commands.command(name='rkick',help="Kick quelqu'un aléatoirement !")
     async def random_kick(self,ctx):
       ListeMembres = ctx.guild.members
       Kicked = False
@@ -31,7 +31,7 @@ class kick(commands.Cog):
             Kicked = True
 
         except:
-          Kicked = True      
+          Kicked = True
 
 def setup(client):
   client.add_cog(kick(client))

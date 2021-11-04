@@ -55,11 +55,11 @@ class YTDLSource(discord.PCMVolumeTransformer):
                    data=data)
 
 
-class music(commands.Cog):
+class musique(commands.Cog):
     def __init__(self, client):
         self.client = client
 
-    @commands.command(name='join', help="Join the voice channel you're in")
+    @commands.command(name='join', help="Rejoins le salon vocal")
     async def join(self, ctx):
         if ctx.author.voice is None:
             await ctx.send("T'es pas dans un ᘎOᙅO !")
@@ -71,7 +71,7 @@ class music(commands.Cog):
             await ctx.voice_client.move_to(ctx.author.voice.channel)
             return True
 
-    @commands.command(name='play',help="Play a youtube url or search for the video")
+    @commands.command(name='play',help="Joue une musique depuis Youtube")
     async def play(self, ctx, url):
         global queue  #Songs queue
         global urls
@@ -81,7 +81,7 @@ class music(commands.Cog):
           if queue:
               queue.append(player)
               urls.append(url)
-              await ctx.send(f'**Added to queue : **{player.title}')
+              await ctx.send(f'**Ajouté à la queue : **{player.title}')
           else:
               queue.append(player)
               urls.append(url)
@@ -93,11 +93,11 @@ class music(commands.Cog):
         global urls
         server = ctx.message.guild
         voice_channel = server.voice_client
-        if queue:   
+        if queue:
             try:
                 voice_channel.play(queue[0], after=lambda e: asyncio.run(self.end_playing(ctx)))
                 await self.client.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=(f'{queue[0].title}')))
-                await ctx.send(f'**Now playing : **{queue[0].title}')
+                await ctx.send(f'**Lis actuellement : **{queue[0].title}')
             except:
                 pass
 
@@ -115,10 +115,10 @@ class music(commands.Cog):
         else:
           await self.client.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="les étoiles"))
 
-    @commands.command(name='queue', help='Show the queue')
+    @commands.command(name='queue', help='Affiche la queue')
     async def queue_(self, ctx):
         global queue
-        list_ = '**Next :**\n'
+        list_ = '**Queue :**\n'
         for i in range(len(queue)):
           if i==0:
             list_ += (f'[P] {queue[i].title}\n')
@@ -126,16 +126,16 @@ class music(commands.Cog):
             list_ += (f'[{i}] {queue[i].title}\n')
         await ctx.send(list_)
 
-    @commands.command(name='clear', help='Clear the queue')
+    @commands.command(name='clear', help='Vide la queue')
     async def clear(self, ctx):
         global queue
         global urls
         try:
             queue.clear()
             urls.clear()
-            await ctx.send("Cleared the queue !")
+            await ctx.send("La queue à été vidé !")
         except:
-            await ctx.send("Somenthing went wrong - please try again later!")
+            await ctx.send("Une erreur est survenu !")
 
     '''@commands.command(name='loop', help='loop the current song')
     async def loop_(self, ctx):
@@ -148,7 +148,7 @@ class music(commands.Cog):
             loop = False
             await ctx.send(f"**Stop looping**")'''
 
-    @commands.command(name='stop', help='Stop the music')
+    @commands.command(name='stop', help='Stop la musique')
     async def stop(self,ctx):
         global loop
         loop = False
@@ -156,12 +156,12 @@ class music(commands.Cog):
         urls.clear()
         ctx.voice_client.stop()
 
-    @commands.command(name='skip', help='Go to the specified song or the next if not specified')
+    @commands.command(name='skip', help='Lis la musique suivante dans la queue, ou celle précisé')
     async def skip(self,ctx,message:Optional[int]):
       if message == None:
         message = 1
       if message>(len(queue)-1):
-        await ctx.send(f"**Ooops, out of range !**")
+        await ctx.send(f"**Ooops, hors de porté !**")
       else:
         for i in range(message-1):
           try:
@@ -169,18 +169,18 @@ class music(commands.Cog):
             del(urls[0])
           except:
             pass
-        await ctx.send(f"**Now playing : **{queue[1].title}")
+        await ctx.send(f"**Lis actuellement : **{queue[1].title}")
         ctx.voice_client.stop()
 
-    @commands.command(name='resume', help='Resume the music')
+    @commands.command(name='resume', help='Redémarre la musique')
     async def resume(self,ctx):
       ctx.voice_client.resume()
       await ctx.send(f"**Resumed !**")
-    
-    @commands.command(name='pause', help='Pause the music')
+
+    @commands.command(name='pause', help='Met pause à la musique')
     async def pause(self,ctx):
       ctx.voice_client.pause()
       await ctx.send(f"**Paused !**")
 
 def setup(client):
-    client.add_cog(music(client))
+    client.add_cog(musique(client))
