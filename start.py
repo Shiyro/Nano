@@ -1,31 +1,32 @@
 import discord
 from discord.ext import commands
-from Musique import music
-import commandes
-import random_cmd
-import kick
 import datetime
-import message
-import event
-from Musique import config
+import config
+from cogs import kick, event,message, random_cmd, commandes
+from cogs.Musique import music
 
-token = "ODg4NDUwNTIyNDg1NTEwMTY0.YUS4Bw.KeUrMZ4GEUTRJFFP5WVTR_jg7hE"
 cfg = config.load_config()
-cogs = [random_cmd,commandes,kick,message,event]
 
 #activity = discord.Game(name="!help")
 #activity = discord.Streaming(name="!help", url="twitch_url_here")
 #activity = discord.Activity(type=discord.ActivityType.listening, name="!help")
 activity = discord.Activity(type=discord.ActivityType.watching, name="les étoiles")
 
-bot = commands.Bot(command_prefix='?', intents = discord.Intents.all(), activity=activity)
+bot = commands.Bot(command_prefix=cfg["prefix"], intents = discord.Intents.all(), activity=activity)
 
-bot.add_cog(music.Music(bot,cfg))
-for i in range(len(cogs)):
-  print("Loading : "+str(cogs[i]))
-  cogs[i].setup(bot)
+COGS = [music.Music, message.message, kick.kick, random_cmd.random_cmd, event.event,commandes.commandes]
 
-async def start_bot():
-  await bot.start(token)
+def add_cogs(bot):
+    for cog in COGS:
+        bot.add_cog(cog(bot,cfg))  # Initialize the cog and add it to the bot
 
-bot.run(token)
+def run():
+    add_cogs(bot)
+    if cfg["token"] == "":
+        raise ValueError(
+            "No token has been provided. Please ensure that config.toml contains the bot token."
+        )
+        sys.exit(1)
+    bot.run(cfg["token"])
+
+run()

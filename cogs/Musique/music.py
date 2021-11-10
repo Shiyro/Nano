@@ -2,10 +2,11 @@ from discord.ext import commands
 import discord
 import asyncio
 import youtube_dl
+from typing import Optional
 import logging
 import math
 from urllib import request
-from Musique.video import Video
+from cogs.Musique.video import Video
 
 # TODO: abstract FFMPEG options into their own file?
 FFMPEG_BEFORE_OPTS = '-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5'
@@ -18,7 +19,7 @@ Also, https://ffmpeg.org/ffmpeg-protocols.html for command line option reference
 
 
 async def audio_playing(ctx):
-    """Checks that audio is currently playing before continuing."""
+    """Verifie que le bot est en train de lire une vidéo."""
     client = ctx.guild.voice_client
     if client and client.channel and client.source:
         return True
@@ -27,7 +28,7 @@ async def audio_playing(ctx):
 
 
 async def in_voice_channel(ctx):
-    """Checks that the command sender is in the same voice channel as the bot."""
+    """Verifie que le bot soit dans un channel."""
     voice = ctx.author.voice
     bot_voice = ctx.guild.voice_client
     if voice and bot_voice and voice.channel and bot_voice.channel and voice.channel == bot_voice.channel:
@@ -36,21 +37,7 @@ async def in_voice_channel(ctx):
         raise commands.CommandError(
             "Tu dois être dans un salon vocal.")
 
-#TODO REMOVE
-'''async def is_audio_requester(ctx):
-    """Checks that the command sender is the song requester."""
-    music = ctx.bot.get_cog("Music")
-    state = music.get_state(ctx.guild)
-    permissions = ctx.channel.permissions_for(ctx.author)
-    if permissions.administrator or state.is_requester(ctx.author):
-        return True
-    else:
-        raise commands.CommandError(
-            "You need to be the song requester to do that.")'''
-
-
 class Music(commands.Cog):
-    """Bot commands to help play music."""
 
     def __init__(self, bot, config):
         self.bot = bot
@@ -60,17 +47,17 @@ class Music(commands.Cog):
         self.bot.add_listener(self.on_reaction_add, "on_reaction_add")
 
     def get_state(self, guild):
-        """Gets the state for `guild`, creating it if it does not exist."""
+        """Recupere l'etat de la `guild`, ou le créer."""
         if guild.id in self.states:
             return self.states[guild.id]
         else:
             self.states[guild.id] = GuildState()
             return self.states[guild.id]
 
-    @commands.command(aliases=["stop"])
+    @commands.command(aliases=["leave"])
     @commands.guild_only()
-    async def leave(self, ctx):
-        """Leaves the voice channel, if currently in one."""
+    async def stop(self, ctx):
+        """Quitte le salon vocal."""
         client = ctx.guild.voice_client
         state = self.get_state(ctx.guild)
         if client and client.channel:
@@ -80,12 +67,12 @@ class Music(commands.Cog):
         else:
             raise commands.CommandError("Pas dans un salon vocal.")
 
-    @commands.command(aliases=["resume", "p"])
+    @commands.command(aliases=["resume"])
     @commands.guild_only()
     @commands.check(audio_playing)
     @commands.check(in_voice_channel)
     async def pause(self, ctx):
-        """Pauses any currently playing audio."""
+        """Met la musique en pause ou relance la lecture."""
         client = ctx.guild.voice_client
         self._pause_audio(client)
 
@@ -99,10 +86,14 @@ class Music(commands.Cog):
     @commands.guild_only()
     @commands.check(audio_playing)
     @commands.check(in_voice_channel)
-    async def skip(self, ctx):
-        """Skips the currently playing song."""
+    async def skip(self, ctx, index:Optional[int]):
+        """Skip la musique actuelle."""
         state = self.get_state(ctx.guild)
         client = ctx.guild.voice_client
+
+        if index is not None:
+            for i in range(index-1):
+                state.playlist.pop(0)
         client.stop()
 
     def _play_song(self, client, state, song):
@@ -112,7 +103,10 @@ class Music(commands.Cog):
             discord.FFmpegPCMAudio(song.stream_url, before_options=FFMPEG_BEFORE_OPTS), volume=state.volume)
 
         def after_playing(err):
-            if len(state.playlist) > 0:
+            if state.loop_flag:
+                next_song = state.now_playing
+                self._play_song(client, state, next_song)
+            elif len(state.playlist) > 0:
                 next_song = state.playlist.pop(0)
                 self._play_song(client, state, next_song)
             else:
@@ -121,25 +115,31 @@ class Music(commands.Cog):
 
         client.play(source, after=after_playing)
 
-    @commands.command(aliases=["np"])
+    @commands.command()
     @commands.guild_only()
     @commands.check(audio_playing)
-    async def nowplaying(self, ctx):
-        """Displays information about the current song."""
+    async def loop(self, ctx):
+        """Repète en boucle la musique actuelle"""
         state = self.get_state(ctx.guild)
-        message = await ctx.send("", embed=state.now_playing.get_embed())
-        await self._add_reaction_controls(message)
+        await self._loop_audio(state)
+        if state.loop_flag:
+            await ctx.send(f"**Loop:** Activé !")
+        else:
+            await ctx.send(f"**Loop:** Désactivé !")
+
+    async def _loop_audio(self,state):
+        state.loop_flag=not state.loop_flag
 
     @commands.command(aliases=["q", "playlist"])
     @commands.guild_only()
     @commands.check(audio_playing)
     async def queue(self, ctx):
-        """Display the current play queue."""
+        """Affiche la queue."""
         state = self.get_state(ctx.guild)
         await ctx.send(self._queue_text(state))
 
     def _queue_text(self, state):
-        """Returns a block of text describing a given song queue."""
+        """Retourne le texte pour l'affichage de la queue."""
         queue = state.playlist
         if len(queue) > 0:
             message = ['**Queue :**']
@@ -152,29 +152,15 @@ class Music(commands.Cog):
         else:
             return "La queue est vide."
 
-    @commands.command(aliases=["cq"])
+    @commands.command(brief="Vide la queue.")
     @commands.guild_only()
     @commands.check(audio_playing)
-    async def clearqueue(self, ctx):
-        """Clears the play queue without leaving the channel."""
+    async def clear(self, ctx):
+        """Vide la queue."""
         state = self.get_state(ctx.guild)
         state.playlist = []
 
-    @commands.command(aliases=["jq"])
-    @commands.guild_only()
-    @commands.check(audio_playing)
-    async def jumpqueue(self, ctx, song: int, new_index: int):
-        """Moves song at an index to `new_index` in queue."""
-        state = self.get_state(ctx.guild)  # get state for this guild
-        if 1 <= song <= len(state.playlist) and 1 <= new_index:
-            song = state.playlist.pop(song - 1)  # take song at index...
-            state.playlist.insert(new_index - 1, song)  # and insert it.
-
-            await ctx.send(self._queue_text(state.playlist))
-        else:
-            raise commands.CommandError("Tu dois choisir un index valide.")
-
-    @commands.command(brief="Plays audio from <url>.")
+    @commands.command(brief="Joue une vidéo depuis <url>.")
     @commands.guild_only()
     async def play(self, ctx, *, url):
         """Plays audio hosted at <url> (or performs a search for <url> and plays the first result)."""
@@ -192,7 +178,7 @@ class Music(commands.Cog):
                 return
             state.playlist.append(video)
             message = await ctx.send(
-                "Added to queue.", embed=video.get_embed())
+                "Ajouté à la queue.", embed=video.get_embed())
             await self._add_reaction_controls(message)
         else:
             if ctx.author.voice is not None and ctx.author.voice.channel is not None:
@@ -204,6 +190,7 @@ class Music(commands.Cog):
                         "Une erreur est survenue pendant le téléchargement de la musique.")
                     return
                 client = await channel.connect()
+                state.loop_flag=False #On reset le loop avant
                 self._play_song(client, state, video)
                 message = await ctx.send("", embed=video.get_embed())
                 await self._add_reaction_controls(message)
@@ -213,7 +200,7 @@ class Music(commands.Cog):
                     "Tu dois être dans un salon vocal pour faire ça.")
 
     async def on_reaction_add(self, reaction, user):
-        """Respods to reactions added to the bot's messages, allowing reactions to control playback."""
+        """Reponds a l'ajout de reactions"""
         message = reaction.message
         if user != self.bot.user and message.author == self.bot.user:
             await message.remove_reaction(reaction, user)
@@ -234,22 +221,27 @@ class Music(commands.Cog):
                         0, state.now_playing
                     )  # insert current song at beginning of playlist
                     client.stop()  # skip ahead
+                elif reaction.emoji == "🔁":
+                    await self._loop_audio(state)
+                    if state.loop_flag:
+                        await message.channel.send(f"**Loop:** Activé !")
+                    else:
+                        await message.channel.send(f"**Loop:** Désactivé !")
 
     async def _add_reaction_controls(self, message):
-        """Adds a 'control-panel' of reactions to a message that can be used to control the bot."""
-        CONTROLS = ["⏮", "⏯", "⏭"]
+        """Ajoute un 'panneau de controle' de reaction au message pour controler le bot."""
+        CONTROLS = ["⏮", "⏯", "⏭","🔁"]
         for control in CONTROLS:
             await message.add_reaction(control)
 
 
 class GuildState:
-    """Helper class managing per-guild state."""
+    """Gestion par guild."""
 
     def __init__(self):
-        self.volume = 1.0
         self.playlist = []
-        self.skip_votes = set()
         self.now_playing = None
+        self.loop_flag = False
 
     def is_requester(self, user):
         return self.now_playing.requested_by == user

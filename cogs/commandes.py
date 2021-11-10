@@ -5,8 +5,9 @@ import datetime
 bot = commands.Bot(command_prefix='?', intents = discord.Intents.all())
 
 class commandes(commands.Cog):
-    def __init__(self, client):
+    def __init__(self, client,config):
         self.client = client
+        self.config = config
 
     @commands.command(name='ping',help='Pong !')
     async def ping(self,ctx):
@@ -37,6 +38,3 @@ class commandes(commands.Cog):
         embed.add_field(name="- ?ping", value="Pong !", inline=True)
         embed.set_footer(text="Sonny / Shiyro")
         await ctx.send(embed=embed)
-
-def setup(client):
-  client.add_cog(commandes(client))

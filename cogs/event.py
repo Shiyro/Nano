@@ -2,8 +2,9 @@ import discord
 from discord.ext import commands
 
 class event(commands.Cog):
-    def __init__(self, client):
+    def __init__(self, client,config):
         self.client = client
+        self.config = config
 
     @commands.Cog.listener()
     async def on_ready(self):
@@ -18,6 +19,3 @@ class event(commands.Cog):
           pass
       if 'quoi' in message.content.lower():
         await message.channel.send('Feur ! <:fanette_smug:869876996061147186>')
-
-def setup(client):
-  client.add_cog(event(client))

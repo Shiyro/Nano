@@ -12,8 +12,9 @@ users=["Shiyro", "Inkukhus", "Fanette", "Sonny", "Logan","Rémi"]
 #users=["Logan"]
 
 class random_cmd(commands.Cog):
-    def __init__(self, client):
+    def __init__(self, client,config):
         self.client = client
+        self.config = config
 
     @commands.command(name='bg',help='Vous ? Nan je rigole c\'est random')
     async def bg(self,ctx):
@@ -62,8 +63,3 @@ class random_cmd(commands.Cog):
         embed=discord.Embed(title="", description="", color=0xffffff)
         embed.add_field(name="Résultat :",value="Fᥲᥴᥱ !")
         await ctx.send(embed=embed)
-
-
-
-def setup(client):
-  client.add_cog(random_cmd(client))
