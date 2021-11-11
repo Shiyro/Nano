@@ -7,8 +7,9 @@ from datetime import datetime
 random.seed(datetime.now())
 
 class kick(commands.Cog):
-    def __init__(self, client):
+    def __init__(self, client,config):
         self.client = client
+        self.config = config
 
     @commands.command(name='kick',help="Kick quelqu'un secrétement !")
     async def kick(self,ctx,member:discord.Member):
@@ -32,6 +33,3 @@ class kick(commands.Cog):
 
         except:
           Kicked = True
-
-def setup(client):
-  client.add_cog(kick(client))
