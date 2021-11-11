@@ -239,6 +239,7 @@ class GuildState:
     """Gestion par guild."""
 
     def __init__(self):
+        self.volume = 1.0
         self.playlist = []
         self.now_playing = None
         self.loop_flag = False
