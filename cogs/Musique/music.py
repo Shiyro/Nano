@@ -98,15 +98,15 @@ class Music(commands.Cog):
 
     def _play_song(self, client, state, song):
         state.now_playing = song
-        state.skip_votes = set()  # clear skip votes
+        channel = client.channel
         source = discord.PCMVolumeTransformer(
             discord.FFmpegPCMAudio(song.stream_url, before_options=FFMPEG_BEFORE_OPTS), volume=state.volume)
 
         def after_playing(err):
-            if state.loop_flag:
+            if state.loop_flag and (len(channel.members)>1):
                 next_song = state.now_playing
                 self._play_song(client, state, next_song)
-            elif len(state.playlist) > 0:
+            elif (len(state.playlist) > 0) and (len(channel.members)>1) :
                 next_song = state.playlist.pop(0)
                 self._play_song(client, state, next_song)
             else:
