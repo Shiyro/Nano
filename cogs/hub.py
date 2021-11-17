@@ -17,6 +17,6 @@ class hub(commands.Cog):
                     self.created_vc.remove(channel)
         if after.channel is not None:
             if after.channel.id == 910433688578297866:
-                new_vc=await Category.create_voice_channel(f"VOCO - {len(self.created_vc)+1}")
+                new_vc=await Category.create_voice_channel(f"𝓥𝓞𝓒𝓞 - {len(self.created_vc)+1}")
                 self.created_vc.append(new_vc)
                 await member.move_to(new_vc)
