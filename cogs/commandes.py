@@ -2,8 +2,6 @@ import discord
 from discord.ext import commands
 import datetime
 
-bot = commands.Bot(command_prefix='?', intents = discord.Intents.all())
-
 class commandes(commands.Cog):
     def __init__(self, client,config):
         self.client = client

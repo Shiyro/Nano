@@ -1,8 +1,7 @@
 import discord
 from discord.ext import commands
-import datetime
 import config
-from cogs import kick, event,message, random_cmd, commandes
+from cogs import kick, event,message, random_cmd, commandes,hub
 from cogs.Musique import music
 
 cfg = config.load_config()
@@ -14,7 +13,7 @@ activity = discord.Activity(type=discord.ActivityType.watching, name="les étoil
 
 bot = commands.Bot(command_prefix=cfg["prefix"], intents = discord.Intents.all(), activity=activity)
 
-COGS = [music.Music, message.message, kick.kick, random_cmd.random_cmd, event.event,commandes.commandes]
+COGS = [music.Music, message.message, kick.kick, random_cmd.random_cmd, event.event,commandes.commandes,hub.hub]
 
 def add_cogs(bot):
     for cog in COGS:
