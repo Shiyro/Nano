@@ -4,7 +4,6 @@
 [music]
 # Options for the music commands
 "max_volume"=250 # Max audio volume. Set to -1 for unlimited.
-"vote_skip"=true # whether vote-skipping is enabled
-"vote_skip_ratio"=0.5 # the minimum ratio of votes needed to skip a song
-[tips]
-"github_url"="https://github.com/joek13/py-music-bot"
+[hub]
+"category_id"=910433640364781598 # The category where the vc are going to be created.
+"hub_vc_id"=910433688578297866 # The hub id.
