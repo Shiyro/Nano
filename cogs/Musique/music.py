@@ -168,36 +168,37 @@ class Music(commands.Cog):
         client = ctx.guild.voice_client
         state = self.get_state(ctx.guild)  # get the guild's state
 
-        if client and client.channel:
-            try:
-                video = Video(url, ctx.author)
-            except youtube_dl.DownloadError as e:
-                logging.warn(f"Error downloading video: {e}")
-                await ctx.send(
-                    "Une erreur est survenue pendant le téléchargement de la musique.")
-                return
-            state.playlist.append(video)
-            message = await ctx.send(
-                "Ajouté à la queue.", embed=video.get_embed())
-            await self._add_reaction_controls(message)
-        else:
-            if ctx.author.voice is not None and ctx.author.voice.channel is not None:
-                channel = ctx.author.voice.channel
+        async with ctx.typing():
+            if client and client.channel:
                 try:
                     video = Video(url, ctx.author)
                 except youtube_dl.DownloadError as e:
+                    logging.warn(f"Error downloading video: {e}")
                     await ctx.send(
                         "Une erreur est survenue pendant le téléchargement de la musique.")
                     return
-                client = await channel.connect()
-                state.loop_flag=False #On reset le loop avant
-                self._play_song(client, state, video)
-                message = await ctx.send("", embed=video.get_embed())
+                state.playlist.append(video)
+                message = await ctx.send(
+                    "Ajouté à la queue.", embed=video.get_embed())
                 await self._add_reaction_controls(message)
-                logging.info(f"Now playing '{video.title}'")
             else:
-                raise commands.CommandError(
-                    "Tu dois être dans un salon vocal pour faire ça.")
+                if ctx.author.voice is not None and ctx.author.voice.channel is not None:
+                    channel = ctx.author.voice.channel
+                    try:
+                        video = Video(url, ctx.author)
+                    except youtube_dl.DownloadError as e:
+                        await ctx.send(
+                            "Une erreur est survenue pendant le téléchargement de la musique.")
+                        return
+                    client = await channel.connect()
+                    state.loop_flag=False #On reset le loop avant
+                    self._play_song(client, state, video)
+                    message = await ctx.send("", embed=video.get_embed())
+                    await self._add_reaction_controls(message)
+                    logging.info(f"Now playing '{video.title}'")
+                else:
+                    raise commands.CommandError(
+                        "Tu dois être dans un salon vocal pour faire ça.")
 
     async def on_reaction_add(self, reaction, user):
         """Reponds a l'ajout de reactions"""
