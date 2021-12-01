@@ -227,10 +227,19 @@ class Music(commands.Cog):
                         await message.channel.send(f"**Loop:** Activé !")
                     else:
                         await message.channel.send(f"**Loop:** Désactivé !")
+                elif reaction.emoji == "⏹":
+                    client = message.guild.voice_client
+                    state = self.get_state(message.guild)
+                    if client and client.channel:
+                        await client.disconnect()
+                        state.playlist = []
+                        state.now_playing = None
+                    else:
+                        raise commands.CommandError("Pas dans un salon vocal.")
 
     async def _add_reaction_controls(self, message):
         """Ajoute un 'panneau de controle' de reaction au message pour controler le bot."""
-        CONTROLS = ["⏮", "⏯", "⏭","🔁"]
+        CONTROLS = ["⏮", "⏯", "⏭","🔁","⏹"]
         for control in CONTROLS:
             await message.add_reaction(control)
 
