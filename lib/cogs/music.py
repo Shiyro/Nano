@@ -87,7 +87,7 @@ class Video:
 
 class MusicInteraction(View):
     def __init__(self,music_player, url):
-        super().__init__()
+        super().__init__(timeout=None)
         self.player = music_player
         self.playing = True
         self.video_url = url
