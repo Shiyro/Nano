@@ -37,7 +37,6 @@ class Hub(commands.Cog):
         if not self.bot.ready:
             self.category = self.bot.get_channel(int(self.cfg["hub_category_id"]))
             self.hub_vc = self.bot.get_channel(int(self.cfg["hub_vc_id"]))
-            self.bot.cogs_ready.ready_up("hub")
 
 def setup(bot):
     bot.add_cog(Hub(bot))

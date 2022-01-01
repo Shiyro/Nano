@@ -5,7 +5,7 @@ import random
 
 from discord.ext.commands import Cog
 from discord import Embed,File
-from discord.ext.commands import command
+from discord.ext.commands import slash_command
 
 from apscheduler.triggers.cron import CronTrigger
 
@@ -15,20 +15,15 @@ class Birthday(Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
-	@Cog.listener()
-	async def on_ready(self):
-		if not self.bot.ready:
-			self.bot.cogs_ready.ready_up("birthday")
-
-	@command(name="anniversaire", aliases=["birthday","anniv"])
-	async def set_birthday(self, ctx, strdate):
+	@slash_command(name="anniv",guild_ids=[665676159421251587])
+	async def set_birthday(self, ctx, date):
 		try:
-			date_object = datetime.strptime(strdate,"%d/%m/%Y").date()
-			db.execute("UPDATE users SET birthday=%s WHERE userid=%s;",date_object,str(ctx.message.author.id))
+			date_object = datetime.strptime(date,"%d/%m/%Y").date()
+			db.execute("UPDATE users SET birthday=%s WHERE userid=%s;",date_object,str(ctx.user.id))
 			db.commit()
-			await ctx.send(f'Ton anniversaire à été defini au {strdate}')
+			await ctx.response.send_message(f'Ton anniversaire à été defini au {date}',ephemeral=True)
 		except ValueError:
-			await ctx.send("Merci de rentrer une date au format DD/MM/YYYY.")
+			await ctx.response.send_message("Merci de rentrer une date au format DD/MM/YYYY.",ephemeral=True)
 
 	def add_birthday_schedule(self,sched):
 		sched.add_job(self.send_birthday, CronTrigger(hour=8,minute=0,second=0))
@@ -38,8 +33,7 @@ class Birthday(Cog):
 		file = File("data/images/birthday_cake_icon.png", filename="birthday_cake_icon.png")
 
 		def get_embed(self,age):
-			embed=Embed(title="**Joyeux anniversaire !** :birthday:", description=get_message(self,age), color=0xff7300)
-			file = File("data/images/birthday_cake_icon.png", filename="birthday_cake_icon.png")
+			embed=Embed(title="**Joyeux anniversaire !** :birthday:", description=get_message(self,age), color=0xFFDCB6)
 			embed.set_thumbnail(url="attachment://birthday_cake_icon.png")
 			embed.set_footer(text="Fait avec amour par Shiyro")
 			return embed
@@ -58,7 +52,7 @@ class Birthday(Cog):
 			f"Désolé que tu aies besoin de faire dérouler tout le menu sur les sites web pour sélectionner ton année de naissance.\nJoyeux anniversaire",
 			f"Je n’arrive pas à me souvenir de ton âge,\nje m’en fous d’ailleurs.",
 			f"Il commence à faire de plus en plus chaud ici ou bien, ce sont juste les bougies sur ton gâteau.",
-			f"Je voulais t’offrir un magnifique cadeau, mais malheureusement je n’ai pas réussi à le faire passer par l’écran de mon ordinateur.",
+			f"Je voulais t’offrir un magnifique cadeau, mais malheureusement je n’ai pas réussi à le faire passer par l’écran de l'ordinateur.",
 			f"Oublie le passé,\ntu ne peux plus le changer.\nOublie aussi le présent,\nje t’en ai pas acheté !",
 			f"Joyeux anniversaire ! Encore un an de plus et tu seras parfait !",
 			f"Il paraît que la perfection n’existe pas sur Terre …\nMais alors dis-moi d’où viens-tu ?",

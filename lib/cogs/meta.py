@@ -6,7 +6,7 @@ from apscheduler.triggers.cron import CronTrigger
 from discord import Activity, ActivityType, Embed, Color
 from discord import __version__ as discord_version
 from discord.ext.commands import Cog
-from discord.ext.commands import command
+from discord.ext.commands import command,slash_command
 import discord
 from psutil import Process, virtual_memory
 
@@ -35,37 +35,31 @@ class Meta(Cog):
 
 		await self.bot.change_presence(activity=Activity(name=_name, type=getattr(ActivityType, _type, ActivityType.playing)))
 
-	@command(name="setactivity", brief="Change l'activité du bot")
-	async def set_activity_message(self, ctx, *, text: str):
-		self.message = text
-		await self.set()
-
-	@command(name="ping",brief="Retourne la latence avec le bot")
-	async def ping(self, ctx):
+	@slash_command(name="ping",description="Retourne la latence avec le bot",guild_ids=[665676159421251587])
+	async def ping(self, interaction):
+		await interaction.defer()
 		start = time()
-		message = await ctx.send(f"Pong! Latence DWSP: {self.bot.latency*1000:,.0f} ms.")
+		message = await interaction.followup.send(f"Pong! Latence DWSP: {self.bot.latency*1000:,.0f} ms.",ephemeral=True)
 		end = time()
 
 		await message.edit(content=f"Pong! Latence DWSP: {self.bot.latency*1000:,.0f} ms. Temps de reponse: {(end-start)*1000:,.0f} ms.")
 
-	@command(name='info',brief='Donne les infos du serveur !')
-	async def info(self,ctx):
-		embed = discord.Embed(title=f"{ctx.guild.name}", description="Un serveur pas comme les autres ", timestamp=datetime.utcnow())
-		embed.add_field(name="Serveur crée à :", value=f"{ctx.guild.created_at}")
-		embed.add_field(name="Appartient a", value=f"{ctx.guild.owner}")
-		embed.add_field(name="Région :", value=f"{ctx.guild.region}")
-		embed.add_field(name="ID Serveur", value=f"{ctx.guild.id}")
-		# embed.set_thumbnail(url=f"{ctx.guild.icon}")
-		embed.set_thumbnail(url=f"{ctx.guild.icon_url}")
-		await ctx.send(embed=embed)
-		#embed.set_thumbnail(url=f"{ctx.guild.icon_url}")
+	@slash_command(name='info',description='Donne les infos du serveur !',guild_ids=[665676159421251587])
+	async def info(self, interaction):
+		embed = discord.Embed(title=f"{interaction.guild.name}", description="Un serveur pas comme les autres ", timestamp=datetime.utcnow())
+		embed.add_field(name="Serveur crée à :", value=f"{interaction.guild.created_at}")
+		embed.add_field(name="Appartient a", value=f"{interaction.guild.owner}")
+		embed.add_field(name="Région :", value=f"{interaction.guild.region}")
+		embed.add_field(name="ID Serveur", value=f"{interaction.guild.id}")
+		embed.set_thumbnail(url=f"{interaction.guild.icon.url}")
+		await interaction.response.send_message(embed=embed,ephemeral=True)
 
-	@command(name="stats",brief="Affiche les infos du bot.")
-	async def show_bot_stats(self, ctx):
+	@slash_command(name="stats",description="Affiche les infos du bot.",guild_ids=[665676159421251587])
+	async def show_bot_stats(self, interaction):
 		embed = Embed(title="Stats du bot",
-					  colour=ctx.author.colour,
-					  thumbnail=self.bot.user.avatar_url,
+					  colour=interaction.user.colour,
 					  timestamp=datetime.utcnow())
+		embed.set_thumbnail(url=self.bot.user.avatar.url)
 
 		proc = Process()
 		with proc.oneshot():
@@ -78,7 +72,7 @@ class Meta(Cog):
 		fields = [
 			("Bot version", self.bot.VERSION, True),
 			("Python version", python_version(), True),
-			("discord.py version", discord_version, True),
+			("Py-cord version", discord_version, True),
 			("Uptime", uptime, True),
 			("CPU time", cpu_time, True),
 			("Memory usage", f"{mem_usage:,.3f} / {mem_total:,.0f} MiB ({mem_of_total:.0f}%)", True),
@@ -88,24 +82,14 @@ class Meta(Cog):
 		for name, value, inline in fields:
 			embed.add_field(name=name, value=value, inline=inline)
 
-		await ctx.send(embed=embed)
+		await interaction.response.send_message(embed=embed,ephemeral=True)
 
-	@command(name="shutdown", brief="Arrete le bot.")
-	async def shutdown(self, ctx):
-		await ctx.send("Arret du bot...")
-
-		with open("./data/banlist.txt", "w", encoding="utf-8") as f:
-			f.writelines([f"{item}\n" for item in self.bot.banlist])
-
+	@slash_command(name="shutdown", description="Arrête le bot.",guild_ids=[665676159421251587])
+	async def shutdown(self, interaction):
+		await interaction.response.send_message("Arret du bot...")
 		db.commit()
 		self.bot.scheduler.shutdown()
-		await self.bot.logout()
-
-	@Cog.listener()
-	async def on_ready(self):
-		if not self.bot.ready:
-			self.bot.cogs_ready.ready_up("meta")
-
+		await self.bot.close()
 
 def setup(bot):
 	bot.add_cog(Meta(bot))

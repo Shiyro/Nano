@@ -12,7 +12,6 @@ EXAMPLE_CONFIG = """###BOTS###
 \"user\"=\"\" #the db users
 \"password\"=\"\" #the db user password
 
-[hub]
 #Options for the voice chat hub
 \"hub_category_id\"=\"\" # The category where the vc are going to be created.
 \"hub_vc_id\"=\"\" # The hub id.

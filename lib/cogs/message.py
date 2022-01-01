@@ -1,19 +1,15 @@
 import discord
 from discord.ext import commands
+from discord.commands import slash_command
 
 class message(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='smessage',brief="Envoi un message secrétement à quelqu'un !")
-    async def kick(self,ctx,member:discord.Member, message:str):
-        await ctx.message.delete()
+    @slash_command(name='smessage',brief="Envoi un message secrétement à quelqu'un !",guild_ids=[665676159421251587])
+    async def smessage(self,ctx,member:discord.Member, *,message:str):
         await member.send(message)
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        if not self.bot.ready:
-            self.bot.cogs_ready.ready_up("message")
+        await ctx.respond(f"Ton message a été envoyé !",ephemeral=True)
 
 def setup(bot):
 	bot.add_cog(message(bot))

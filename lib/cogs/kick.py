@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord.commands import slash_command
 import random
 import json
 
@@ -7,12 +8,12 @@ class kick(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command(name='kick',brief="Kick quelqu'un secrétement !")
+    @slash_command(name='kick',description="Kick quelqu'un qui n'en saura rien !",guild_ids=[665676159421251587])
     async def kick(self,ctx,member:discord.Member):
-      await ctx.message.delete()
-      await member.move_to(None)
+        await ctx.respond(f"Tu as kick {member.mention}",ephemeral=True)
+        await member.move_to(None)
 
-    @commands.command(name='rkick',brief="Kick quelqu'un aléatoirement !")
+    @slash_command(name='rkick',description="Kick quelqu'un aléatoirement, à defaut de pouvoir faire une roulette russe virtuelle !",guild_ids=[665676159421251587])
     async def random_kick(self,ctx):
       ListeMembres = ctx.guild.members
       Kicked = False
@@ -25,11 +26,6 @@ class kick(commands.Cog):
             await ctx.send(f'{ListeMembres[Membre].mention} tu es l\'élu !')
             await ListeMembres[Membre].move_to(None)
             Kicked = True
-
-    @commands.Cog.listener()
-    async def on_ready(self):
-        if not self.bot.ready:
-            self.bot.cogs_ready.ready_up("kick")
 
 def setup(bot):
 	bot.add_cog(kick(bot))
