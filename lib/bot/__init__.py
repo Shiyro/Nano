@@ -115,6 +115,6 @@ class Bot(BotBase):
 			else: #Message sur le serveur
 				pass
 			if 'quoi' in message.content.lower():
-				await message.channel.send('**jte baise !**')
+				await message.channel.send('**Feur !**')
 
 bot = Bot()
