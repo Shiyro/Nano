@@ -1,5 +1,5 @@
 from asyncio import sleep
-from datetime import datetime
+from datetime import datetime, timezone
 from glob import glob
 
 from ..bot import config
@@ -29,7 +29,7 @@ class Bot(BotBase):
 
 		self.guild = None
 		self.TOKEN=cfg["token"]
-		self.scheduler = AsyncIOScheduler()
+		self.scheduler = AsyncIOScheduler(timezone="Europe/Paris")
 
 		db.autosave(self.scheduler)
 		super().__init__(command_prefix=cfg["prefix"], owner_ids=OWNER_IDS, intents=Intents().all(),help_command=None)

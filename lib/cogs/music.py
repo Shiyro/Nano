@@ -180,9 +180,8 @@ class Music(commands.Cog):
                 self._play_song(client, state, next_song)
                 asyncio.run_coroutine_threadsafe(self.send_player(next_song,state),self.bot.loop)
             else:
+                asyncio.run_coroutine_threadsafe(state.player_message.edit(view=None),self.bot.loop)
                 state.now_playing = None
-                if state.player_message is not None:
-                    asyncio.run_coroutine_threadsafe(state.player_message.edit(view=None),self.bot.loop)
                 asyncio.run_coroutine_threadsafe(client.disconnect(),self.bot.loop)
 
         client.play(source, after=after_playing)

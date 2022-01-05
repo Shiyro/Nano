@@ -19,8 +19,9 @@ class RewindButton(Button):
 	def __init__(self,bot):
 		super().__init__(label="Découvrir", style=discord.ButtonStyle.primary)
 		self.bot = bot
-		self.rewind_year = 2021#str(datetime.now().strftime("%Y"))
+		self.rewind_year = str(datetime.now().strftime("%Y"))
 		self.thumbnail = []
+
 
 	def get_embeds(self,userid):
 		embeds = []
