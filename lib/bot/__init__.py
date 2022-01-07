@@ -16,6 +16,8 @@ from discord.ext.commands import (CommandNotFound, BadArgument, MissingRequiredA
 from discord.ext.commands import when_mentioned_or, command, has_permissions
 
 from ..cogs import birthday
+from ..cogs import stats
+
 from ..db import db
 
 OWNER_IDS = [238039924178157568]
@@ -47,26 +49,12 @@ class Bot(BotBase):
 		self.VERSION = version
 		super().run(self.TOKEN, reconnect=True)
 
-	async def process_commands(self, message):
-		ctx = await self.get_context(message, cls=Context)
-
-		if ctx.command is not None and ctx.guild is not None:
-			if not self.ready:
-				await ctx.send("Je ne suis pas encore prêt à recevoir des commandes.")
-			else:
-				await self.invoke(ctx)
-
 	async def on_connect(self):
 		print("Connected to Discord. Not ready to receive commands.")
 		await self.register_commands()
 
 	async def on_disconnect(self):
 		print("Disconnected")
-
-	async def on_error(self, err, *args, **kwargs):
-		if err == "on_command_error":
-			await args[0].send("Quelque chose s'est mal passé.")
-		raise
 
 	async def on_command_error(self, ctx, exc):
 		if any([isinstance(exc, error) for error in IGNORE_EXCEPTIONS]):
@@ -92,7 +80,8 @@ class Bot(BotBase):
 			birthday = self.get_cog("Birthday")
 			birthday.add_birthday_schedule(self.scheduler)
 			rewind = self.get_cog("Rewind")
-			rewind.add_vc_stats_schedule(self.scheduler)
+			rewind.add_rewind_schedule(self.scheduler)
+			stats.start_timespent_recording(self.scheduler,self.guild)
 			self.scheduler.start()
 
 			self.update_db()
@@ -100,9 +89,6 @@ class Bot(BotBase):
 			await self.stdout.send("En ligne !")
 			self.ready = True
 			print("Now ready to receive commands")
-
-			meta = self.get_cog("Meta")
-			await meta.set()
 
 		else:
 			print("The bot has reconnected")

@@ -1,22 +1,27 @@
 from discord.ext import commands
 import discord
+from discord import Activity, ActivityType
 from discord.commands import slash_command,message_command
 from discord.ui import Button, View
 
 import asyncio
+from discord.utils import V
 import youtube_dl
 from typing import Optional
 import logging
 import math
 from urllib import request
-
 import youtube_dl as ytdl
+
+from . import stats
 
 YTDL_OPTS = {
     "default_search": "ytsearch",
     "format": "bestaudio/best",
+    "audio-quality": "128K",
     "quiet": True,
-    "extract_flat": "in_playlist"
+    "extract_flat": "in_playlist",
+    "no_playlist": True
 }
 
 # TODO: abstract FFMPEG options into their own file?
@@ -166,8 +171,10 @@ class Music(commands.Cog):
 
     def _play_song(self, client, state, song):
         state.now_playing = song
+        _activity = Activity(name=f"{song.title}",type=getattr(ActivityType, "listening", ActivityType.playing))
+        asyncio.run_coroutine_threadsafe(self.bot.change_presence(activity=_activity),self.bot.loop)
         channel = client.channel
-        source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio(song.stream_url, before_options=FFMPEG_BEFORE_OPTS), volume=state.volume)
+        source = discord.FFmpegOpusAudio(song.stream_url, before_options=FFMPEG_BEFORE_OPTS)
 
         def after_playing(err):
             if state.loop_flag and (len(channel.members)>1):
@@ -183,6 +190,7 @@ class Music(commands.Cog):
                 asyncio.run_coroutine_threadsafe(state.player_message.edit(view=None),self.bot.loop)
                 state.now_playing = None
                 asyncio.run_coroutine_threadsafe(client.disconnect(),self.bot.loop)
+                asyncio.run_coroutine_threadsafe(self.bot.change_presence(activity=None),self.bot.loop)
 
         client.play(source, after=after_playing)
 
@@ -226,36 +234,37 @@ class Music(commands.Cog):
         client = ctx.guild.voice_client
         state = self.get_state(ctx.guild)  # get the guild's state
 
-        async with ctx.typing():
-            if client and client.channel:
+        if client and client.channel:
+            try:
+                video = Video(url, ctx.author)
+            except youtube_dl.DownloadError as e:
+                logging.warn(f"Error downloading video: {e}")
+                await ctx.respond.send_message("Une erreur est survenue pendant le téléchargement de la musique.",ephemeral=True)
+                return
+            state.playlist.append(video)
+            state.webhook = ctx.followup
+            await ctx.response.send_message(content=f"**{video.title}** à été ajouté à la queue")
+            await state.webhook.send(embed=video.get_embed(),delete_after=5)
+            stats.stats_add_music_played(ctx.user)
+        else:
+            if ctx.author.voice is not None and ctx.author.voice.channel is not None:
+                channel = ctx.author.voice.channel
                 try:
                     video = Video(url, ctx.author)
                 except youtube_dl.DownloadError as e:
-                    logging.warn(f"Error downloading video: {e}")
-                    await ctx.respond("Une erreur est survenue pendant le téléchargement de la musique.",ephemeral=True)
+                    await ctx.respond.send_message("Une erreur est survenue pendant le téléchargement de la musique.",ephemeral=True)
                     return
-                state.playlist.append(video)
-                await ctx.response.send_message("Ajouté à la queue.", embed=video.get_embed(),delete_after=5)
+                client = await channel.connect()
+                state.loop_flag=False #On reset le loop avant
+                await ctx.defer()
                 state.webhook = ctx.followup
-                #await self._add_reaction_controls(message)
-            else:
-                if ctx.author.voice is not None and ctx.author.voice.channel is not None:
-                    channel = ctx.author.voice.channel
-                    try:
-                        video = Video(url, ctx.author)
-                    except youtube_dl.DownloadError as e:
-                        await ctx.respond("Une erreur est survenue pendant le téléchargement de la musique.",ephemeral=True)
-                        return
-                    client = await channel.connect()
-                    state.loop_flag=False #On reset le loop avant
-                    self._play_song(client, state, video)
-                    await ctx.defer()
-                    state.webhook = ctx.followup
-                    state.player_message = await state.webhook.send(embed=video.get_embed(),view = MusicInteraction(self,video.video_url))
+                state.player_message = await state.webhook.send(embed=video.get_embed(),view = MusicInteraction(self,video.video_url))
+                self._play_song(client, state, video)
+                stats.stats_add_music_played(ctx.user)
 
-                    logging.info(f"Now playing '{video.title}'")
-                else:
-                    raise commands.CommandError("Tu dois être dans un salon vocal pour faire ça.")
+                logging.info(f"Now playing '{video.title}'")
+            else:
+                raise commands.CommandError("Tu dois être dans un salon vocal pour faire ça.")
 
     async def send_player(self,video,state):
         state.player_message = await state.webhook.send(embed=video.get_embed(),view = MusicInteraction(self,video.video_url))
@@ -267,7 +276,6 @@ class GuildState:
     """Gestion par guild."""
 
     def __init__(self):
-        self.volume = 1.0
         self.playlist = []
         self.now_playing = None
         self.webhook = None

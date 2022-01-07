@@ -16,24 +16,6 @@ from ..db import db
 class Meta(Cog):
 	def __init__(self, bot):
 		self.bot = bot
-		self._message = "listening du bullshit"
-		bot.scheduler.add_job(self.set, CronTrigger(second=0))
-
-	@property
-	def message(self):
-		return self._message.format(users=len(self.bot.users), guilds=len(self.bot.guilds))
-
-	@message.setter
-	def message(self, value):
-		if value.split(" ")[0] not in ("playing", "watching", "listening", "streaming"):
-			raise ValueError("Invalid activity type.")
-
-		self._message = value
-
-	async def set(self):
-		_type, _name = self.message.split(" ", maxsplit=1)
-
-		await self.bot.change_presence(activity=Activity(name=_name, type=getattr(ActivityType, _type, ActivityType.playing)))
 
 	@slash_command(name="ping",description="Retourne la latence avec le bot",guild_ids=[665676159421251587])
 	async def ping(self, interaction):

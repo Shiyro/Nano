@@ -106,40 +106,6 @@ class Rewind(Cog):
 		if not self.bot.ready:
 			self.guild = self.bot.get_guild(665676159421251587)
 
-	@Cog.listener()
-	async def on_message(self,message):
-		if not message.author.bot:
-			if message.guild:
-				year = str(datetime.now().strftime("%Y"))
-				db.execute("""INSERT INTO users_stats(userid,year,message_sent)
-							  VALUES(%s,%s,%s)
-							  ON CONFLICT(userid,year)
-							  DO UPDATE SET message_sent = users_stats.message_sent + 1;""",str(message.author.id),year,1)
-				if message.content.startswith('/play'): #Music played
-					db.execute("""UPDATE users_stats SET music_played = users_stats.music_played + 1 WHERE userid=%s""",str(message.author.id))
-
-				if message.mentions: #mentioned someone
-					for user in message.mentions:
-						if not user.bot:
-							db.execute("""INSERT INTO users_mentions(userid,mentioned_user,year,number_of_mentions)
-									  	VALUES(%s,%s,%s,%s)
-									  	ON CONFLICT(userid,mentioned_user,year)
-									  	DO UPDATE SET number_of_mentions = users_mentions.number_of_mentions + 1;""",str(message.author.id),str(user.id),year,1)
-
-                #if message in self.bot.commands:
-				if 'quoi' in message.content.lower():
-					db.execute("""UPDATE users_stats SET feur = users_stats.feur + 1 WHERE userid=%s""",str(message.author.id))
-
-	async def time_spent_voicechat(self):
-		year = str(datetime.now().strftime("%Y"))
-		for member in self.guild.members:
-			if not member.bot:
-				if member.voice is not None and member.voice.channel is not None:
-					db.execute("""INSERT INTO users_stats(userid,year,voice_channel_time)
-								  VALUES(%s,%s,%s)
-								  ON CONFLICT(userid,year)
-								  DO UPDATE SET voice_channel_time = users_stats.voice_channel_time + 1;""",str(member.id),year,1)
-
 	async def send_rewind(self):
 		embed=Embed(title="**Rewind!**", description="Ton récapitulatif annuel est disponible.\nClique sur le bouton pour le découvrir !", color=0x20b6b6)
 		embed.set_thumbnail(url="https://cdn-icons-png.flaticon.com/512/4869/4869759.png")
@@ -150,10 +116,8 @@ class Rewind(Cog):
 			user = self.bot.get_user(user[0])
 			await user.send(embed=embed,view=View(RewindButton(self.bot),timeout=None))
 
-	def add_vc_stats_schedule(self,sched):
+	def add_rewind_schedule(self,sched):
 		sched.add_job(self.send_rewind, CronTrigger(month=12,day=31,hour=22,minute=0,second=0))
-		#sched.add_job(self.send_rewind, CronTrigger(second=0))
-		sched.add_job(self.time_spent_voicechat, CronTrigger(second=55))
 
 
 def setup(bot):

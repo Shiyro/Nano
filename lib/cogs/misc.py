@@ -8,8 +8,6 @@ import time
 import datetime
 from datetime import datetime
 
-from lib.cogs.message import message
-
 from ..db import db
 
 class Misc(commands.Cog):
@@ -47,14 +45,11 @@ class Misc(commands.Cog):
                 await interaction.response.send_message("Merci de rentrer un role valide.",ephemeral=True)
         elif type=="Liste":
             await interaction.response.send_message(random.choice(valeur))
-        
 
-    @message_command(name="Dit au revoir !",guild_ids=[665676159421251587])
-    async def aurevoir(self,ctx,message):
-        year = str(datetime.now().strftime("%Y"))
-        fanette = self.bot.get_user(249970729418752000)
-        db.execute("""INSERT INTO guild_stats(guildid,year,no_goodbye_fanette) VALUES(%s,%s,%s) ON CONFLICT(guildid,year) DO UPDATE SET no_goodbye_fanette = guild_stats.no_goodbye_fanette + 1;""",str(ctx.guild.id),year,1)          
-        await ctx.respond(f'{fanette.mention} n\'a pas dis au revoir ? Très bien, nous allons lui niquer sa mère.')
+    @slash_command(name='smessage',brief="Envoi un message secrétement à quelqu'un !",guild_ids=[665676159421251587])
+    async def smessage(self,ctx,member:discord.Member, *,message:str):
+        await member.send(message)
+        await ctx.respond(f"Ton message a été envoyé !",ephemeral=True)
 
 def setup(bot):
     bot.add_cog(Misc(bot))
