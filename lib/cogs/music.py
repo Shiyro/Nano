@@ -15,8 +15,10 @@ import youtube_dl as ytdl
 YTDL_OPTS = {
     "default_search": "ytsearch",
     "format": "bestaudio/best",
+    "audio-quality": "9",
     "quiet": True,
-    "extract_flat": "in_playlist"
+    "extract_flat": "in_playlist",
+    "no_playlist": True
 }
 
 # TODO: abstract FFMPEG options into their own file?
@@ -232,26 +234,25 @@ class Music(commands.Cog):
                     video = Video(url, ctx.author)
                 except youtube_dl.DownloadError as e:
                     logging.warn(f"Error downloading video: {e}")
-                    await ctx.respond("Une erreur est survenue pendant le téléchargement de la musique.",ephemeral=True)
+                    await ctx.respond.send_message("Une erreur est survenue pendant le téléchargement de la musique.",ephemeral=True)
                     return
                 state.playlist.append(video)
-                await ctx.response.send_message("Ajouté à la queue.", embed=video.get_embed(),delete_after=5)
                 state.webhook = ctx.followup
-                #await self._add_reaction_controls(message)
+                await ctx.response.send_message("Ajouté à la queue.", embed=video.get_embed(),delete_after=5)
             else:
                 if ctx.author.voice is not None and ctx.author.voice.channel is not None:
                     channel = ctx.author.voice.channel
                     try:
                         video = Video(url, ctx.author)
                     except youtube_dl.DownloadError as e:
-                        await ctx.respond("Une erreur est survenue pendant le téléchargement de la musique.",ephemeral=True)
+                        await ctx.respond.send_message("Une erreur est survenue pendant le téléchargement de la musique.",ephemeral=True)
                         return
                     client = await channel.connect()
                     state.loop_flag=False #On reset le loop avant
-                    self._play_song(client, state, video)
                     await ctx.defer()
                     state.webhook = ctx.followup
                     state.player_message = await state.webhook.send(embed=video.get_embed(),view = MusicInteraction(self,video.video_url))
+                    self._play_song(client, state, video)
 
                     logging.info(f"Now playing '{video.title}'")
                 else:
