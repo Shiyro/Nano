@@ -16,18 +16,18 @@ class stats(Cog):
         super().__init__()
         self.bot = bot
 
-        @Cog.listener()
-        async def on_message(self,message):
-            if not message.author.bot:
-                if message.guild:
-                    year = str(datetime.now().strftime("%Y"))
-                    stats_add_sent_message(message.author)
-                    if message.mentions: #mentioned someone
-                        for user in message.mentions:
-                            if not user.bot:
-                                stats_add_mention(message.author,user)
-                    if 'quoi' in message.content.lower():
-                        stats_add_feur(message.author)
+    @Cog.listener()
+    async def on_message(self,message):
+        if not message.author.bot:
+            if message.guild:
+                year = str(datetime.now().strftime("%Y"))
+                stats_add_sent_message(message.author)
+                if message.mentions: #mentioned someone
+                    for user in message.mentions:
+                        if not user.bot:
+                            stats_add_mention(message.author,user)
+                if 'quoi' in message.content.lower():
+                    stats_add_feur(message.author)
         
     @message_command(name="Dit au revoir !",guild_ids=[665676159421251587])
     async def aurevoir(self,ctx,message):
