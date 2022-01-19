@@ -224,7 +224,7 @@ class Music(commands.Cog):
             ]  # add individual songs
             return "\n".join(message)
         else:
-            return "La queue est vide."
+            return "La file est vide. Ajoute tes sons !"
 
     @slash_command(guild_ids=[665676159421251587])
     @commands.guild_only()
@@ -234,36 +234,40 @@ class Music(commands.Cog):
         client = ctx.guild.voice_client
         state = self.get_state(ctx.guild)  # get the guild's state
 
+        
+
         if client and client.channel:
+            await ctx.defer()
+            state.webhook = ctx.followup
             try:
                 video = Video(url, ctx.author)
             except youtube_dl.DownloadError as e:
                 logging.warn(f"Error downloading video: {e}")
-                await ctx.respond.send_message("Une erreur est survenue pendant le téléchargement de la musique.",ephemeral=True)
+                await state.webhook.send("Une erreur est survenue pendant le téléchargement de la musique.",ephemeral=True)
                 return
             state.playlist.append(video)
-            state.webhook = ctx.followup
-            await ctx.response.send_message(content=f"**{video.title}** à été ajouté à la queue")
+            await state.webhook.send(content=f"**{video.title}** à été ajouté à la queue")
             await state.webhook.send(embed=video.get_embed(),delete_after=5)
             stats.stats_add_music_played(ctx.user)
         else:
             if ctx.author.voice is not None and ctx.author.voice.channel is not None:
+                await ctx.defer()
+                state.webhook = ctx.followup
                 channel = ctx.author.voice.channel
                 try:
                     video = Video(url, ctx.author)
                 except youtube_dl.DownloadError as e:
-                    await ctx.respond.send_message("Une erreur est survenue pendant le téléchargement de la musique.",ephemeral=True)
+                    await state.webhook.send("Une erreur est survenue pendant le téléchargement de la musique.",ephemeral=True)
                     return
                 client = await channel.connect()
                 state.loop_flag=False #On reset le loop avant
-                await ctx.defer()
-                state.webhook = ctx.followup
                 state.player_message = await state.webhook.send(embed=video.get_embed(),view = MusicInteraction(self,video.video_url))
                 self._play_song(client, state, video)
                 stats.stats_add_music_played(ctx.user)
 
                 logging.info(f"Now playing '{video.title}'")
             else:
+                await ctx.response.send_message("Tu dois être dans un salon vocal pour faire ça.",ephemeral=True)
                 raise commands.CommandError("Tu dois être dans un salon vocal pour faire ça.")
 
     async def send_player(self,video,state):

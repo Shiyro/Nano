@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 from discord.commands import slash_command
 import random
-import json
 
 class kick(commands.Cog):
     def __init__(self, bot):
