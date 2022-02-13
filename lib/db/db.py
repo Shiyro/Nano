@@ -6,11 +6,9 @@ from ..bot import config
 from apscheduler.triggers.cron import CronTrigger
 
 cfg = config.load_config()
-#DB_PATH = "./data/db/database.db"
 BUILD_PATH = "./data/db/build.sql"
 
 conn = psycopg.connect(host=cfg["host"],dbname=cfg["dbname"],user=cfg["user"],password=cfg["password"])
-#cxn = connect(DB_PATH, check_same_thread=False)
 cur = conn.cursor()
 
 
@@ -76,4 +74,3 @@ def multiexec(command, valueset):
 def scriptexec(path):
 	with open(path, "r", encoding="utf-8") as script:
 		cur.execute(script.read())
-		#cur.executescript(script.read())
