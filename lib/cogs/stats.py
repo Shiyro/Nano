@@ -7,10 +7,7 @@ from apscheduler.triggers.cron import CronTrigger
 
 from ..db import db
 
-
-
 guild = None
-
 class stats(Cog):
     def __init__(self,bot) -> None:
         super().__init__()
@@ -72,10 +69,11 @@ def start_timespent_recording(sched,_guild):
     guild = _guild
     sched.add_job(stats_add_time_spent_voicechat, CronTrigger(second=55))
 
-async def stats_add_time_spent_voicechat():
+def stats_add_time_spent_voicechat():
     global guild
+    membres = guild.members
     year = str(datetime.now().strftime("%Y"))
-    for member in guild.members:
+    for member in membres:
         if not member.bot:
             if member.voice is not None and member.voice.channel is not None:
                 db.execute("""INSERT INTO users_stats(userid,year,voice_channel_time)
