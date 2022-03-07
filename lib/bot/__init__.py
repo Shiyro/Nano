@@ -66,7 +66,6 @@ class Bot(BotBase):
 			birthday.add_birthday_schedule(self.scheduler)
 			rewind = self.get_cog("Rewind")
 			rewind.add_rewind_schedule(self.scheduler)
-			stats.start_timespent_recording(self.scheduler,self.guild)
 			self.scheduler.start()
 
 			self.update_db()
