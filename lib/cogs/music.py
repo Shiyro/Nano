@@ -206,7 +206,7 @@ class Music(commands.Cog):
         state = self.get_state(interaction.guild)
         return state.loop_flag
 
-    @message_command(name="Afficher la queue",guild_ids=[665676159421251587])
+    @message_command(name="Afficher la queue")
     async def queue(self, interaction, message):
         """Affiche la queue."""
         state = self.get_state(interaction.guild)
@@ -226,7 +226,7 @@ class Music(commands.Cog):
         else:
             return "La file est vide. Ajoute tes sons !"
 
-    @slash_command(guild_ids=[665676159421251587])
+    @slash_command()
     @commands.guild_only()
     async def play(self, ctx, *, url):
         """Joue l'audio de <url> (ou effectue une recherche de <url> et joue le premier résultat)."""

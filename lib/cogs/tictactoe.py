@@ -123,7 +123,7 @@ class Morpion(Cog):
     def __init__(self,bot):
         self.bot = bot
 
-    @message_command(name="Morpion",guild_ids=[665676159421251587])
+    @message_command(name="Morpion")
     async def user_morpion(self,interaction,message):
        embed = Embed(title="Invitation de jeu",description=f"{interaction.user.mention} à demarrer une partie de morpion !",)
        embed.set_thumbnail(url="https://cdn-icons.flaticon.com/png/512/2162/premium/2162800.png?token=exp=1641153114~hmac=812d76ba3675bac8799953adb7cbda5f")

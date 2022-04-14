@@ -14,11 +14,11 @@ class Misc(commands.Cog):
     def __init__(self,bot):
         self.bot = bot
 
-    @user_command(name="Dire coucou",guild_ids=[665676159421251587])
+    @user_command(name="Dire coucou")
     async def hi(self, interaction, user):
         await interaction.respond(f"{interaction.author.mention} dit coucou à {user.name}!")
 
-    @slash_command(name='random',description='Tirage au sort',guild_ids=[665676159421251587])
+    @slash_command(name='random',description='Tirage au sort')
     async def random(
     self,
     interaction,
@@ -46,7 +46,7 @@ class Misc(commands.Cog):
         elif type=="Liste":
             await interaction.response.send_message(random.choice(valeur))
 
-    @slash_command(name='smessage',brief="Envoi un message secrétement à quelqu'un !",guild_ids=[665676159421251587])
+    @slash_command(name='smessage',brief="Envoi un message secrétement à quelqu'un !")
     async def smessage(self,ctx,member:discord.Member, *,message:str):
         await member.send(message)
         await ctx.respond(f"Ton message a été envoyé !",ephemeral=True)
