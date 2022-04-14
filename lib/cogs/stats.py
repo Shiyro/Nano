@@ -26,7 +26,7 @@ class stats(Cog):
                 if 'quoi' in message.content.lower():
                     stats_add_feur(message.author)
         
-    @message_command(name="Dit au revoir !",guild_ids=[665676159421251587])
+    @message_command(name="Dit au revoir !")
     async def aurevoir(self,ctx,message):
         year = str(datetime.now().strftime("%Y"))
         fanette = self.bot.get_user(249970729418752000)
