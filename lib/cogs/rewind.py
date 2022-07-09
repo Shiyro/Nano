@@ -103,7 +103,6 @@ class Rewind(Cog):
 
 	@Cog.listener()
 	async def on_ready(self):
-		if not self.bot.ready:
 			self.guild = self.bot.get_guild(665676159421251587)
 
 	async def send_rewind(self):
