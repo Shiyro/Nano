@@ -59,7 +59,6 @@ class Bot(BotBase):
 	async def on_ready(self):
 		if not self.ready:
 			self.guild = self.get_guild(665676159421251587)
-			self.stdout = self.get_channel(919912122660556870)
 
 
 			birthday = self.get_cog("Birthday")
@@ -70,7 +69,6 @@ class Bot(BotBase):
 
 			self.update_db()
 
-			await self.stdout.send("En ligne !")
 			self.ready = True
 			print("Now ready to receive commands")
 

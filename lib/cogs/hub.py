@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from wonderwords import RandomWord, Defaults
 
 from ..bot import config
 
@@ -10,6 +11,7 @@ class Hub(commands.Cog):
         self.created_vc=[]
         self.category = None
         self.hub_vc = None
+
 
     @commands.Cog.listener()
     async def on_guild_channel_delete(self,channel_deleted):
@@ -26,15 +28,17 @@ class Hub(commands.Cog):
                         await channel.delete()
                     except:
                         pass
+
         if after.channel is not None:
             if after.channel == self.hub_vc:
-                new_vc=await self.category.create_voice_channel(f"𝓥𝓞𝓒𝓞 - {len(self.created_vc)+1}")
+                r = RandomWord()
+                vc_name = (f"{r.word(include_parts_of_speech=['adjectives'],).title()} {r.word(include_parts_of_speech=['nouns']).title()}")
+                new_vc=await self.category.create_voice_channel(vc_name)
                 self.created_vc.append(new_vc)
                 await member.move_to(new_vc)
 
     @commands.Cog.listener()
     async def on_ready(self):
-        if not self.bot.ready:
             self.category = self.bot.get_channel(int(self.cfg["hub_category_id"]))
             self.hub_vc = self.bot.get_channel(int(self.cfg["hub_vc_id"]))
 
