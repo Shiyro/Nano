@@ -7,12 +7,12 @@ class kick(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @slash_command(name='kick',description="Kick quelqu'un qui n'en saura rien !",guild_ids=[665676159421251587])
+    @slash_command(name='kick',description="Kick quelqu'un qui n'en saura rien !")
     async def kick(self,ctx,member:discord.Member):
         await ctx.respond(f"Tu as kick {member.mention}",ephemeral=True)
         await member.move_to(None)
 
-    @slash_command(name='rkick',description="Kick quelqu'un aléatoirement, à defaut de pouvoir faire une roulette russe virtuelle !",guild_ids=[665676159421251587])
+    @slash_command(name='rkick',description="Kick quelqu'un aléatoirement, à defaut de pouvoir faire une roulette russe virtuelle !")
     async def random_kick(self,ctx):
       ListeMembres = ctx.guild.members
       Kicked = False

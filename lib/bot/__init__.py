@@ -2,7 +2,7 @@ from asyncio import sleep
 from datetime import datetime, timezone
 from glob import glob
 
-from ..bot import config
+import os
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -22,7 +22,6 @@ from ..db import db
 
 OWNER_IDS = [238039924178157568]
 COGS = [path.split("/")[-1][:-3] for path in glob("./lib/cogs/*.py")]
-cfg=config.load_config()
 IGNORE_EXCEPTIONS = (CommandNotFound, BadArgument)
 
 class Bot(BotBase):
@@ -30,11 +29,11 @@ class Bot(BotBase):
 		self.ready = False
 
 		self.guild = None
-		self.TOKEN=cfg["token"]
+		self.TOKEN=os.environ['BOT_TOKEN']
 		self.scheduler = AsyncIOScheduler(timezone="Europe/Paris")
 
 		db.autosave(self.scheduler)
-		super().__init__(command_prefix=cfg["prefix"], owner_ids=OWNER_IDS, intents=Intents().all(),help_command=None)
+		super().__init__(owner_ids=OWNER_IDS, intents=Intents().all(),help_command=None)
 
 		for cog in COGS:
 			self.load_extension(f"lib.cogs.{cog}")
@@ -58,8 +57,7 @@ class Bot(BotBase):
 
 	async def on_ready(self):
 		if not self.ready:
-			self.guild = self.get_guild(665676159421251587)
-			self.stdout = self.get_channel(919912122660556870)
+			self.guild = self.get_guild(os.environ["SERVER_ID"])
 
 
 			birthday = self.get_cog("Birthday")
@@ -71,7 +69,6 @@ class Bot(BotBase):
 
 			self.update_db()
 
-			await self.stdout.send("En ligne !")
 			self.ready = True
 			print("Now ready to receive commands")
 
@@ -81,11 +78,8 @@ class Bot(BotBase):
 	async def on_message(self, message):
 		if not message.author.bot:
 			await self.process_commands(message)
-			if not message.guild: # si le bot recois en pm
-				await self.get_channel(905566642858242049).send(message.content)
-			else: #Message sur le serveur
-				pass
-			if 'quoi' in message.content.lower():
+			
+			if ' quoi' in message.content.lower() or 'quoi ' in message.content.lower() or message.content.lower == 'quoi':
 				await message.channel.send('**Feur !**')
 
 bot = Bot()

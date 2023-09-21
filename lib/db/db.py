@@ -1,14 +1,17 @@
 from os.path import isfile
 from sqlite3 import connect
 import psycopg
-from ..bot import config
-
+import os
 from apscheduler.triggers.cron import CronTrigger
 
-cfg = config.load_config()
 BUILD_PATH = "./data/db/build.sql"
+HOST=os.getenv('POSTGRES_HOST')
+DBNAME=os.getenv('POSTGRES_DB')
+USER=os.getenv('POSTGRES_USER')
+PASSWORD=os.getenv('POSTGRES_PASSWORD')
 
-conn = psycopg.connect(host=cfg["host"],dbname=cfg["dbname"],user=cfg["user"],password=cfg["password"])
+
+conn = psycopg.connect(host=HOST,dbname=DBNAME,user=USER,password=PASSWORD)
 cur = conn.cursor()
 
 

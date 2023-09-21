@@ -26,16 +26,9 @@ class stats(Cog):
                     for user in message.mentions:
                         if not user.bot:
                             stats_add_mention(message.author,user)
-                if 'quoi' in message.content.lower():
+                if ' quoi' in message.content.lower() or 'quoi ' in message.content.lower() or message.content.lower == 'quoi':
                     stats_add_feur(message.author)
-        
-    @message_command(name="Dit au revoir !",guild_ids=[665676159421251587])
-    async def aurevoir(self,ctx,message):
-        year = str(datetime.now().strftime("%Y"))
-        fanette = self.bot.get_user(249970729418752000)
-        db.execute("""INSERT INTO guild_stats(guildid,year,no_goodbye_fanette) VALUES(%s,%s,%s) ON CONFLICT(guildid,year) DO UPDATE SET no_goodbye_fanette = guild_stats.no_goodbye_fanette + 1;""",str(ctx.guild.id),year,1)          
-        await ctx.respond(f'{fanette.mention} n\'a pas dis au revoir ? Très bien, nous allons lui niquer sa mère.')
-                        
+              
 
 def setup(bot):
     bot.add_cog(stats(bot))
@@ -63,9 +56,6 @@ def stats_add_music_played(user):   #Nombre de musiques jouées
     year = str(datetime.now().strftime("%Y"))
     db.execute("""UPDATE users_stats SET music_played = users_stats.music_played + 1 WHERE userid=%s AND year=%s""",str(user.id),year)
 
-def stats_add_aurevoir():   #Nombre de fois ou fanette dit pas au revoir
-    year = str(datetime.now().strftime("%Y"))
-    pass
 
 def start_timespent_recording(sched,_guild):
     global guild

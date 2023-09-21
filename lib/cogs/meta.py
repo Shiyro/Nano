@@ -17,7 +17,7 @@ class Meta(Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
-	@slash_command(name="ping",description="Retourne la latence avec le bot",guild_ids=[665676159421251587])
+	@slash_command(name="ping",description="Retourne la latence avec le bot")
 	async def ping(self, interaction):
 		await interaction.defer()
 		start = time()
@@ -26,17 +26,16 @@ class Meta(Cog):
 
 		await message.edit(content=f"Pong! Latence DWSP: {self.bot.latency*1000:,.0f} ms. Temps de reponse: {(end-start)*1000:,.0f} ms.")
 
-	@slash_command(name='info',description='Donne les infos du serveur !',guild_ids=[665676159421251587])
+	@slash_command(name='info',description='Donne les infos du serveur !')
 	async def info(self, interaction):
 		embed = discord.Embed(title=f"{interaction.guild.name}", description="Un serveur pas comme les autres ", timestamp=datetime.utcnow())
 		embed.add_field(name="Serveur crée à :", value=f"{interaction.guild.created_at}")
 		embed.add_field(name="Appartient a", value=f"{interaction.guild.owner}")
-		embed.add_field(name="Région :", value=f"{interaction.guild.region}")
 		embed.add_field(name="ID Serveur", value=f"{interaction.guild.id}")
 		embed.set_thumbnail(url=f"{interaction.guild.icon.url}")
 		await interaction.response.send_message(embed=embed,ephemeral=True)
 
-	@slash_command(name="stats",description="Affiche les infos du bot.",guild_ids=[665676159421251587])
+	@slash_command(name="stats",description="Affiche les infos du bot.")
 	async def show_bot_stats(self, interaction):
 		embed = Embed(title="Stats du bot",
 					  colour=interaction.user.colour,
@@ -66,12 +65,12 @@ class Meta(Cog):
 
 		await interaction.response.send_message(embed=embed,ephemeral=True)
 
-	@slash_command(name="shutdown", description="Arrête le bot.",guild_ids=[665676159421251587])
+	@slash_command(name="shutdown", description="Arrête le bot.")
 	async def shutdown(self, interaction):
 		await interaction.response.send_message("Arret du bot...")
 		db.commit()
 		self.bot.scheduler.shutdown()
 		await self.bot.close()
-
+		
 def setup(bot):
 	bot.add_cog(Meta(bot))

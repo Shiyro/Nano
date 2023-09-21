@@ -1,6 +1,7 @@
 from discord import Forbidden
 from discord.ext.commands import Cog
 from discord.ext.commands import command
+import os 
 
 from ..db import db
 
@@ -8,15 +9,16 @@ from ..db import db
 class Welcome(Cog):
 	def __init__(self, bot):
 		self.bot = bot
+		self.channel = os.getenv('WELCOME_CHANNEL_ID')
 
 	@Cog.listener()
 	async def on_member_join(self, member):
 		db.execute("INSERT INTO users(userid) VALUES(%s) ON CONFLICT DO NOTHING", member.id)
-		await self.bot.get_channel(818142776117035038).send(f"Bienvenue sur **{member.guild.name}** {member.mention}!")
+		await self.bot.get_channel(self.channel).send(f"Bienvenue sur **{member.guild.name}** {member.mention}!")
 
 	@Cog.listener()
 	async def on_member_remove(self, member):
-		await self.bot.get_channel(818142776117035038).send(f"{member.display_name} a abandonné le navire !")
+		await self.bot.get_channel(self.channel).send(f"{member.display_name} a abandonné le navire !")
 
 
 def setup(bot):

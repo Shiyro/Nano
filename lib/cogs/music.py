@@ -6,22 +6,26 @@ from discord.ui import Button, View
 
 import asyncio
 from discord.utils import V
-import youtube_dl
+import yt_dlp
 from typing import Optional
 import logging
 import math
 from urllib import request
-import youtube_dl as ytdl
+import yt_dlp as ytdl
 
 from . import stats
 
-YTDL_OPTS = {
-    "default_search": "ytsearch",
+ydl_opts = {
+    "default_search": "auto",
     "format": "bestaudio/best",
-    "audio-quality": "128K",
     "quiet": True,
-    "extract_flat": "in_playlist",
-    "no_playlist": True
+    "extract_flat": True,
+    "skip_download": True,
+    'postprocessors': [{
+        'key': 'FFmpegExtractAudio',
+        'preferredcodec': 'opus',
+        'preferredquality': '256',
+    }],
 }
 
 # TODO: abstract FFMPEG options into their own file?
@@ -57,10 +61,13 @@ class Video:
 
     def __init__(self, url_or_search, requested_by):
         """Plays audio from (or searches for) a URL."""
-        with ytdl.YoutubeDL(YTDL_OPTS) as ydl:
-            video = self._get_info(url_or_search)
-            video_format = video["formats"][0]
-            self.stream_url = video_format["url"]
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            if "youtube.com" in url_or_search or "youtu.be" in url_or_search:
+                video = self._get_info(url_or_search)
+            else:
+                video =  self._get_info(f"ytsearch:{url_or_search}")
+            
+            self.stream_url = video["url"]
             self.video_url = video["webpage_url"]
             self.title = video["title"]
             self.uploader = video["uploader"] if "uploader" in video else ""
@@ -69,12 +76,12 @@ class Video:
             self.requested_by = requested_by
 
     def _get_info(self, video_url):
-        with ytdl.YoutubeDL(YTDL_OPTS) as ydl:
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=False)
             video = None
             if "_type" in info and info["_type"] == "playlist":
                 return self._get_info(
-                    info["entries"][0]["url"])  # get info for first video
+                    info["entries"][0]["url"])  # get info for the first video
             else:
                 video = info
             return video
@@ -89,7 +96,7 @@ class Video:
         if self.thumbnail:
             embed.set_thumbnail(url=self.thumbnail)
         return embed
-
+    
 class MusicInteraction(View):
     def __init__(self,music_player, url):
         super().__init__(timeout=None)
@@ -114,6 +121,7 @@ class MusicInteraction(View):
     async def skip_button_callback(self,button,interaction):
         if await audio_playing(interaction) and await in_voice_channel(interaction):
             await self.player._skip(interaction)
+            await interaction.response.defer()
         else:
             if not await audio_playing(interaction):
                 await interaction.response.send_message("Il n'y a pas de musique en cours.",ephemeral=True)
@@ -134,6 +142,7 @@ class MusicInteraction(View):
     @discord.ui.button(label="Stop", style=discord.ButtonStyle.danger)
     async def stop_button_callback(self,button,interaction):
         await self.player._stop(interaction)
+        await interaction.response.defer()
 
 class Music(commands.Cog):
 
@@ -174,7 +183,7 @@ class Music(commands.Cog):
         _activity = Activity(name=f"{song.title}",type=getattr(ActivityType, "listening", ActivityType.playing))
         asyncio.run_coroutine_threadsafe(self.bot.change_presence(activity=_activity),self.bot.loop)
         channel = client.channel
-        source = discord.FFmpegOpusAudio(song.stream_url, before_options=FFMPEG_BEFORE_OPTS)
+        source = discord.FFmpegOpusAudio(song.stream_url, before_options=FFMPEG_BEFORE_OPTS, bitrate=256)
 
         def after_playing(err):
             if state.loop_flag and (len(channel.members)>1):
@@ -206,7 +215,7 @@ class Music(commands.Cog):
         state = self.get_state(interaction.guild)
         return state.loop_flag
 
-    @message_command(name="Afficher la queue",guild_ids=[665676159421251587])
+    @message_command(name="Afficher la queue")
     async def queue(self, interaction, message):
         """Affiche la queue."""
         state = self.get_state(interaction.guild)
@@ -226,7 +235,7 @@ class Music(commands.Cog):
         else:
             return "La file est vide. Ajoute tes sons !"
 
-    @slash_command(guild_ids=[665676159421251587])
+    @slash_command()
     @commands.guild_only()
     async def play(self, ctx, *, url):
         """Joue l'audio de <url> (ou effectue une recherche de <url> et joue le premier résultat)."""
@@ -241,7 +250,7 @@ class Music(commands.Cog):
             state.webhook = ctx.followup
             try:
                 video = Video(url, ctx.author)
-            except youtube_dl.DownloadError as e:
+            except yt_dlp.DownloadError as e:
                 logging.warn(f"Error downloading video: {e}")
                 await state.webhook.send("Une erreur est survenue pendant le téléchargement de la musique.",ephemeral=True)
                 return
@@ -256,7 +265,7 @@ class Music(commands.Cog):
                 channel = ctx.author.voice.channel
                 try:
                     video = Video(url, ctx.author)
-                except youtube_dl.DownloadError as e:
+                except yt_dlp.DownloadError as e:
                     await state.webhook.send("Une erreur est survenue pendant le téléchargement de la musique.",ephemeral=True)
                     return
                 client = await channel.connect()

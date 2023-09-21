@@ -1,3 +1,3 @@
 from . import db
 
-db.build()
+#db.build()

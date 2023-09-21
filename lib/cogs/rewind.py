@@ -76,16 +76,6 @@ class RewindButton(Button):
 			embeds.append(embed)
 			self.thumbnail.append(file)
 
-		###AU REVOIR FANETTE###
-		if(result := db.field("SELECT no_goodbye_fanette FROM guild_stats WHERE year=%s;",self.rewind_year)) is not None:
-			file = File("data/images/door_icon.png", filename="door_icon.png")
-			embed=Embed(title="Rewind!", description=f"La politesse ça pourrait être une bonne résolution.", color=0xF4DAB5)
-			embed.set_thumbnail(url="attachment://door_icon.png")
-			embed.add_field(name="Nombre de fois où Fanette est partie sans un mot :",value=f"{result} fois")
-			embed.set_footer(text="Fait avec amour par Shiyro")
-			embeds.append(embed)
-			self.thumbnail.append(file)
-
 		self.thumbnail = iter(self.thumbnail)
 		return embeds
 
@@ -99,12 +89,6 @@ class RewindButton(Button):
 class Rewind(Cog):
 	def __init__(self, bot):
 		self.bot = bot
-		self.guild = None
-
-	@Cog.listener()
-	async def on_ready(self):
-		if not self.bot.ready:
-			self.guild = self.bot.get_guild(665676159421251587)
 
 	async def send_rewind(self):
 		embed=Embed(title="**Rewind!**", description="Ton récapitulatif annuel est disponible.\nClique sur le bouton pour le découvrir !", color=0x20b6b6)

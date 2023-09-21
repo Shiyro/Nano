@@ -15,7 +15,7 @@ class Birthday(Cog):
 	def __init__(self, bot):
 		self.bot = bot
 
-	@slash_command(name="anniv",guild_ids=[665676159421251587])
+	@slash_command(name="anniv",description="Défini ton anniversaire au format DD/MM/YYYY")
 	async def set_birthday(self, ctx, date):
 		try:
 			date_object = datetime.strptime(date,"%d/%m/%Y").date()
